@@ -26,16 +26,22 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
+      - name: Set up loop devices
+        run: |
+          # Create loop devices on the host if they don't exist
+          for i in {0..15}; do
+            if [ ! -e /dev/loop$i ]; then
+              sudo mknod /dev/loop$i b 7 $i
+            fi
+          done
       - name: start container
         run: |
           podman run -d --name test-container --privileged \
-            --device /dev/loop-control \
-            $(for i in {0..15}; do echo "--device /dev/loop$i"; done) \
-            --security-opt label=disable \
-            --cap-add=MKNOD \
-            --cap-add=SYS_ADMIN \
-            -v ./:/src:Z \
-            ghcr.io/ffgan/ovirt-imageio-test:${{matrix.distro}} sleep infinity
+          --device /dev/loop-control \
+          $(for i in {0..15}; do echo "--device /dev/loop$i"; done) \
+          --security-opt label=disable \
+          -v ./:/src:Z \
+          ghcr.io/ffgan/ovirt-imageio-test:${{matrix.distro}} sleep infinity
 
       # We need to run this in order to fix sudo execution.
       # See https://github.com/rocky-linux/sig-cloud-instance-images/issues/56
@@ -72,7 +78,10 @@ jobs:
           mkdir -p ${{env.EXPORT_DIR}}
           podman cp build-container:/src/exported-artifacts/ ./${{env.EXPORT_DIR}}
       # TODO: 修复这里的上传问题
-
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: ${{env.EXPORT_DIR}}
       # - name: Upload artidacts
       #   uses: ovirt/upload-rpms-action@main
       #   with:
