@@ -45,9 +45,9 @@ jobs:
       - name: build image
         run: cd  containers &&  make ${{ matrix.distro }}
       - name: tag image
-        run: podman tag localhost/ovirt-imageio-test:fedora-riscv-41 ghcr.io/ffgan/ovirt-ovirt-imageio-test:fedora-riscv-41
+        run: podman tag localhost/ovirt-imageio-test:fedora-riscv-41 ghcr.io/ffgan/ovirt-imageio-test:fedora-riscv-41
       - name: push docker image
-        run: podman push  ghcr.io/ffgan/ovirt-ovirt-imageio-test:fedora-riscv-41
+        run: podman push  ghcr.io/ffgan/ovirt-imageio-test:fedora-riscv-41
   container:
     runs-on: ubuntu-latest
     steps:
