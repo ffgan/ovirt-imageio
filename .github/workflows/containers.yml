@@ -40,7 +40,7 @@ jobs:
       - name: build image
         run: cd  containers &&  make ${{ matrix.distro }}
       - name: tag image
-        run: docker tag ovirt-imageio-test:fedora-riscv-41 ghcr.io/ffgan/ovirt-ovirt-imageio-test:fedora-riscv-41
+        run: docker tag localhost/ovirt-imageio-test:fedora-riscv-41 ghcr.io/ffgan/ovirt-ovirt-imageio-test:fedora-riscv-41
       - name: push docker image
         run: docker push  ghcr.io/ffgan/ovirt-ovirt-imageio-test:fedora-riscv-41
   container:
@@ -62,6 +62,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: tag image
-        run: docker tag ovirt-imageio:latest ghcr.io/ffgan/ovirt-imageio:latest
+        run: docker tag localhost/ovirt-imageio:latest ghcr.io/ffgan/ovirt-imageio:latest
       - name: push docker image
         run: docker push ghcr.io/ffgan/ovirt-imageio:latest
