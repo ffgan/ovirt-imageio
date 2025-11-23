@@ -46,9 +46,9 @@ jobs:
       # We need to run this in order to fix sudo execution.
       # See https://github.com/rocky-linux/sig-cloud-instance-images/issues/56
       - name: Fix sudo
-        run: podman exec test-container bash -c  "cd /src && chmod 0400 /etc/shadow"
+        run: podman exec --user root test-container bash -c  "cd /src && chmod 0400 /etc/shadow"
       - name: Run tests
-        run: podman exec test-container bash -c  "cd /src && ci/test.sh ${{matrix.env}}"
+        run: podman exec --user root test-container bash -c  "cd /src && ci/test.sh ${{matrix.env}}"
   rpm:
     runs-on: ubuntu-latest
     strategy:
@@ -73,16 +73,27 @@ jobs:
       - name: Build rpms
         run: podman exec build-container bash -c  "cd /src && ./ci/rpm.sh"
 
+      - name: Install createrepo_c if needed
+        shell: bash
+        run: podman exec build-container bash -c  "which createrepo_c || dnf install -y createrepo_c"
+
+      - name: Create DNF repository if needed
+        shell: bash
+        run: podman exec build-container bash -c  "cd /src && test -d ${{env.EXPORT_DIR}}/repodata || createrepo_c ${{env.EXPORT_DIR}}"
+
+      - name: Get distro suffix
+        id: eval
+        run: |
+          distro=$(podman exec build-container bash -c "rpm --eval %{?dist} | cut -d '.' -f 2")
+          echo $distro  >> $GITHUB_OUTPUT
+
       - name: copy artifacts
         run: |
           mkdir -p ${{env.EXPORT_DIR}}
           podman cp build-container:/src/exported-artifacts/ ./${{env.EXPORT_DIR}}
-      # TODO: 修复这里的上传问题
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: rpm
+          name: rpm-${{ steps.eval.outputs.distro }}
           path: ${{env.EXPORT_DIR}}
-      # - name: Upload artidacts
-      #   uses: ovirt/upload-rpms-action@main
-      #   with:
-      #     directory: ${{env.EXPORT_DIR}}
