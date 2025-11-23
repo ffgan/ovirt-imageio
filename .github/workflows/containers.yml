@@ -9,6 +9,7 @@ on:
   # Build every week on Monday 00:00
   # schedule:
   #   - cron:  '0 0 * * 1'
+  push:
 # env:
 # IMAGE_REGISTRY: quay.io/ovirt
 # can_push: ${{ github.repository_owner == 'oVirt' }}
