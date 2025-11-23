@@ -31,7 +31,7 @@ dist: $(GENERATED)
 
 container: dist
 	cp $(OUTDIR)/ovirt-imageio-*.tar.gz container/ovirt-imageio.tar.gz
-	podman build -t ovirt-imageio container
+	podman build --platform linux/riscv64 -t ovirt-imageio container
 	rm -f container/ovirt-imageio.tar.gz
 
 srpm: dist
