@@ -29,6 +29,8 @@ jobs:
       - name: start container
         run: |
           podman run -d --name test-container --privileged \
+            --device /dev/loop-control \
+            $(for i in {0..7}; do echo "--device /dev/loop$i"; done) \
             --security-opt label=disable \
             --cap-add=MKNOD \
             --cap-add=SYS_ADMIN \
@@ -67,8 +69,8 @@ jobs:
 
       - name: copy artifacts
         run: |
-          mkdir -p ${{env.EXPORT_DIR}}/${{matrix.distro}}
-          podman cp build-container:/rpmbuild/RPMS/ ${{env.EXPORT_DIR}}/${{matrix.distro}}/
+          mkdir -p ${{env.EXPORT_DIR}}
+          podman cp build-container:/src/exported-artifacts/ ./${{env.EXPORT_DIR}}
 
       - name: Upload artidacts
         uses: ovirt/upload-rpms-action@main
