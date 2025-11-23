@@ -13,6 +13,11 @@ on:
 # env:
 # IMAGE_REGISTRY: quay.io/ovirt
 # can_push: ${{ github.repository_owner == 'oVirt' }}
+
+env:
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
 jobs:
   test-containers:
     runs-on: ubuntu-latest
@@ -31,18 +36,18 @@ jobs:
       - name: Build container images
         working-directory: containers
         run: make ${{ matrix.distro }}
-      - name: Login to ghcr.io
-        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+      - name: Log in to ghcr.io
+        uses: redhat-actions/podman-login@v1
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+          registry: ${{ env.IMAGE_REGISTRY }}
       - name: build image
         run: cd  containers &&  make ${{ matrix.distro }}
       - name: tag image
-        run: docker tag localhost/ovirt-imageio-test:fedora-riscv-41 ghcr.io/ffgan/ovirt-ovirt-imageio-test:fedora-riscv-41
+        run: podman tag localhost/ovirt-imageio-test:fedora-riscv-41 ghcr.io/ffgan/ovirt-ovirt-imageio-test:fedora-riscv-41
       - name: push docker image
-        run: docker push  ghcr.io/ffgan/ovirt-ovirt-imageio-test:fedora-riscv-41
+        run: podman push  ghcr.io/ffgan/ovirt-ovirt-imageio-test:fedora-riscv-41
   container:
     runs-on: ubuntu-latest
     steps:
@@ -55,13 +60,13 @@ jobs:
         uses: docker/setup-qemu-action@v3
       - name: Build container images
         run: make container
-      - name: Login to ghcr.io
-        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+      - name: Log in to ghcr.io
+        uses: redhat-actions/podman-login@v1
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+          registry: ${{ env.IMAGE_REGISTRY }}
       - name: tag image
-        run: docker tag localhost/ovirt-imageio:latest ghcr.io/ffgan/ovirt-imageio:latest
+        run: podman tag localhost/ovirt-imageio:latest ghcr.io/ffgan/ovirt-imageio:latest
       - name: push docker image
-        run: docker push ghcr.io/ffgan/ovirt-imageio:latest
+        run: podman push ghcr.io/ffgan/ovirt-imageio:latest
