@@ -86,7 +86,7 @@ jobs:
         run: |
           distro=$(podman exec build-container bash -c "cd /src && rpm --eval %{?dist} | cut -d '.' -f 2")
           echo $distro
-          echo $distro  >> $GITHUB_OUTPUT
+          echo "distro=$distro" >> $GITHUB_OUTPUT
 
       - name: copy artifacts
         run: |
