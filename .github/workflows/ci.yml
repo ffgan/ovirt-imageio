@@ -26,14 +26,14 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: pull container
-        run: podman pull ghcr.io/ffgan/ovirt-ovirt-imageio-test:${{matrix.distro}}
-
       - name: start container
         run: |
           podman run -d --name test-container --privileged \
+            --security-opt label=disable \
+            --cap-add=MKNOD \
+            --cap-add=SYS_ADMIN \
             -v ./:/src:Z \
-            ghcr.io/ffgan/ovirt-ovirt-imageio-test:${{matrix.distro}} sleep infinity
+            ghcr.io/ffgan/ovirt-imageio-test:${{matrix.distro}} sleep infinity
 
       # We need to run this in order to fix sudo execution.
       # See https://github.com/rocky-linux/sig-cloud-instance-images/issues/56
@@ -57,16 +57,13 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: pull container
-        run: podman pull ghcr.io/ffgan/ovirt-ovirt-imageio-test:${{matrix.distro}}
-
       - name: start container
         run: |
           podman run -d --name build-container --privileged \
             -v ./:/src:Z \
-            ghcr.io/ffgan/ovirt-ovirt-imageio-test:${{matrix.distro}} sleep infinity
+            ghcr.io/ffgan/ovirt-imageio-test:${{matrix.distro}} sleep infinity
       - name: Build rpms
-        run: podman exec build-container bash -c  "./ci/rpm.sh"
+        run: podman exec build-container bash -c  "cd /src && ./ci/rpm.sh"
 
       - name: copy artifacts
         run: |
